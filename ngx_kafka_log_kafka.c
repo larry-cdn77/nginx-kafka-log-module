@@ -280,6 +280,27 @@ ngx_kafka_log_configure_kafka(ngx_pool_t *pool,
         return NGX_ERROR;
     }
 
+#define DUMP(key) \
+    length = sizeof(value); \
+    res = rd_kafka_conf_get(conf->rkc, key, value, &length); \
+    ngx_log_error(NGX_LOG_INFO, pool->log, 0, "%s %s", key, value); \
+    if (res != RD_KAFKA_CONF_OK) { \
+        ngx_log_error(NGX_LOG_ERR, pool->log, 0, \
+            "kafka_log: rd_kafka_conf_get of \"%s\" returned %d\n", \
+            key, res); \
+    }
+
+    char value[128];
+    size_t length;
+    rd_kafka_conf_res_t res;
+    DUMP("bootstrap.servers");
+    DUMP("client.id");
+    DUMP("compression.codec");
+    DUMP("message.send.max.retries");
+    DUMP("queue.buffering.max.messages");
+    DUMP("retry.backoff.ms");
+    DUMP("debug");
+    DUMP("log_level");
 
     return NGX_OK;
 }

@@ -234,6 +234,10 @@ ngx_http_kafka_log_get_topic(ngx_http_kafka_log_main_conf_t* conf, ngx_str_t* to
 
     // disable topic acks
     ngx_kafka_log_kafka_topic_disable_ack(pool, rktc);
+    /*ngx_keyval_t prop;
+    prop.key = ngx_string("request.required.acks");
+    prop.value = ngx_string("0");
+    ngx_kafka_log_kafka_conf_property_set(pool, &conf->kafka, &prop);*/
 
     topic->rkt = ngx_kafka_log_kafka_topic_new(pool,
         conf->kafka.rk,
@@ -417,6 +421,9 @@ ngx_http_kafka_log_set_property(ngx_conf_t *cf, ngx_command_t *cmd,
         return NGX_CONF_ERROR;
     }
 
+    /*ngx_conf_log_error(NGX_LOG_INFO, cf, 0, "set_rdkafka_property %s %s\n",
+        prop_key, prop_value);*/
+
     if (ngx_kafka_log_kafka_conf_property_set(cf->pool, &kmcf->kafka,
                                               prop_key, prop_value) != NGX_OK) {
         ngx_conf_log_error(NGX_LOG_ERR, cf, 0,
@@ -445,6 +452,8 @@ ngx_http_kafka_log_set_rdkafka_property(ngx_conf_t *cf, ngx_command_t *cmd,
         return NGX_CONF_ERROR;
     }
 
+    /*ngx_conf_log_error(NGX_LOG_ERR, cf, 0, "set_rdkafka_property %s %s\n",
+        prop_key, prop_value);*/
 
     if (ngx_kafka_log_kafka_conf_property_set(cf->pool, &kmcf->kafka,
                                               prop_key, prop_value) != NGX_OK) {
@@ -452,6 +461,16 @@ ngx_http_kafka_log_set_rdkafka_property(ngx_conf_t *cf, ngx_command_t *cmd,
                 "http_kafka_log: failed to set kafka configuration property");
         return NGX_CONF_ERROR;
     }
+
+    /*char buf[128];
+    size_t length = sizeof(buf);
+    rd_kafka_conf_res_t res = rd_kafka_conf_get(kmcf->kafka.rkc,
+        "debug", buf, &length);
+    ngx_log_error(NGX_LOG_ERR, cf->pool->log, 0, "debug %s", buf);
+    if (res != RD_KAFKA_CONF_OK) {
+        ngx_log_error(NGX_LOG_ERR, cf->pool->log, 0,
+            "kafka_log: rd_kafka_conf_get of \"dump\" returned %d\n", res);
+    }*/
 
     return NGX_CONF_OK;
 }
@@ -531,6 +550,8 @@ ngx_http_kafka_log_loc_output(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_str_t                            *value = NULL;
     ngx_str_t                             location;
     size_t                                prefix_len;
+
+    /*ngx_conf_log_error(NGX_LOG_INFO, cf, 0, "ngx_conf_parse\n");*/
 
     new_location = ngx_array_push(lc->locations);
     if (new_location == NULL) {
